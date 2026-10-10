@@ -1,4 +1,3 @@
-
 import os
 from io import BytesIO
 from html import escape
@@ -173,9 +172,14 @@ def generate_image(request: GenerateRequest):
             media_type="image/png",
             headers={"Cache-Control": "no-store"}
         )
-    except Exception:
-        # Do not expose API tokens or internal error details to visitors.
+        except Exception as exc:
+        import logging
+        logging.exception("DreamForge image generation failed")
         raise HTTPException(
             status_code=502,
-            detail="The AI provider could not generate the image. Check your Hugging Face token, model access, provider availability, and usage credits."
+            detail=(
+                "Image generation failed. Check the Render logs "
+                "for the underlying error. Verify provider access, "
+                "model availability, and billing."
+            )
         )
