@@ -172,14 +172,53 @@ def generate_image(request: GenerateRequest):
             media_type="image/png",
             headers={"Cache-Control": "no-store"}
         )
-        except Exception as exc:
-        import logging
+        
+@app.post("/generate")
+def generate_image(request: GenerateRequest):
+    import logging
+
+    token = os.getenv("HF_TOKEN")
+    if not token:
+        raise HTTPException(
+            status_code=503,
+            detail="AI service is not configured. Set HF_TOKEN in Render Environment."
+        )
+
+    prompt = request.prompt.strip()
+    if not prompt:
+        raise HTTPException(
+            status_code=400,
+            detail="Enter an image description."
+        )
+
+    model = os.getenv(
+        "HF_MODEL",
+        "black-forest-labs/FLUX.1-schnell"
+    )
+
+    try:
+        client = InferenceClient(
+            model=model,
+            token=token
+        )
+
+        image = client.text_to_image(prompt)
+
+        output = BytesIO()
+        image.save(output, format="PNG")
+
+        return Response(
+            content=output.getvalue(),
+            media_type="image/png",
+            headers={"Cache-Control": "no-store"}
+        )
+
+    except Exception:
         logging.exception("DreamForge image generation failed")
         raise HTTPException(
             status_code=502,
             detail=(
                 "Image generation failed. Check the Render logs "
-                "for the underlying error. Verify provider access, "
-                "model availability, and billing."
+                "for provider access, model availability, and billing."
             )
         )
