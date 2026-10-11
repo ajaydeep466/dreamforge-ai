@@ -1,4 +1,3 @@
-
 services:
   - type: web
     name: dreamforge-ai
@@ -7,6 +6,7 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: HF_TOKEN
+      - key: CF_API_TOKEN
         sync: false
-        
+      - key: CF_ACCOUNT_ID
+        sync: false
